@@ -1,10 +1,6 @@
 # demonstration-notebooks
-The goal is for this repository to contain Jupyter Notebooks that are motivated by one or both of the following goals:
-1. to summarize and illustrate the key points of certain foundational texts with a mix of notes and technical demonstration
-    - these will be named using the format `<FIRST WORD OF TITLE>_<FIRST AUTHOR NAME>_<PUBLICATION YEAR>.ipynb` 
-2. to create a codebase for completing a specific task with demonstration throughout
-I will start with the readings assigned as part of my SLHS 900 class, which is focused on LPC formant analysis and other related topics.
-## Format
-The plan is to have one notebook for each paper I read. Each notebook will contain reference material for the original text (term definitions, copied passages, notes, etc.). Each notebook is also likely to contain some technical demonstration written in Julia.\
-Additionally, I plan to make a notebook that contains code for conducting LPC analysis. This LPC notebook will serve as the "end-product" of SLHS 900.\
-I will likely add more notebooks as I see fit.
+The goal is to make this repository a place to put "working code". Most of the files will be Jupyter Notebooks, which provide a great environment to develop, test, and showcase code in a stepwise fashion. Jupyter Notebooks also allow for the easy integration of code with other forms of media. Most of this development will occur in the Julia programming language.\
+
+Whenever I have written a function that is in a (re)usable state, I will move it into a *.jl file for easy importation into other work. Though I will try to keep my notebooks organized, I consider them all works in progress. The more reliable stuff will be in the *.jl files.\
+
+I made this repository to contain my work for an independent study course, however, I've decided to keep using it as a general workspace going forward. Because the original work was for the course, I started organizing the files by reading. I quickly realized that this wasn't going to work, as it sometimes made sense to combine concepts from multiple readings or to only pull from part of a reading for a particular demonstration. I am currently naming the files with a descriptive title, but I will still include references to texts within the notebooks as I see fit.\
