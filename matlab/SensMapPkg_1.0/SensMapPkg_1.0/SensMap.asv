@@ -1,0 +1,118 @@
+function [sf,vfmts,areas,M] = SensMap(ar0,F,lv, tol, minA);
+%SensMap.m
+%Author: Brad Story, University of Arizona
+%Start Date: 08.15.2003
+%Last Updated: 07.03.2013
+%INPUTS
+%ar0 = initial area function 
+%F = formant vector of any size - length(F) is usually < 6; these are the
+%desired formants
+%lv = the length of an individual tubelet section of an area function
+%(e.g., lv =0.4 would give a 17.6 cm VT length for a 44-section area
+%vector; can also be a length vector where each element is the tubelet
+%length - each could be a different length
+%tol = tolerance (in Hz) for terminating the iteration
+%minA = minimum area allowed within an area function.
+
+
+
+T = [];
+%accel is a scale factor that speeds up the iteration - 10 is good.
+accel = 10;
+
+%'areas' is a matrix that will hold all of the area function created during
+%iterations
+areas = [];
+%assign the initial area function to the first row of 'areas'
+areas(1,:) = ar0(:)';
+
+%initialization values for some things
+lsd = 100000;
+lsd_grad(1) = 1;
+lsd_grad(2) = 0;
+i=1;
+M = 0;
+
+%Start the while loop for iterative changes of the area function. This runs
+%until the squared difference of the desired formants relative to the
+%formants of the current area function is less than the tolerance value OR
+%if the number of interations exceeds 1000
+while  (lsd > tol & i < 1000 )
+    
+    %Call the function that calculates sensitivity functions for the
+    %current area function
+    [S,K,P,fmts,Press,Flow] = sens_functions(areas(i,:)',lv,'y');
+    
+    %Assign the formants for the current area function to a formant matrix
+    %-coincides with 'areas'
+    vfmts(i,:) = fmts(1:length(F));
+    
+    fmts = fmts(1:length(F));
+    
+    %Calculate the coefficients for the perturbation function (z); and the 
+    %squared difference of the desired formants and the fmts
+    %of the current area function.
+    for j = 1:length(F)
+        if(F(j) > 0 )
+            z(j) = accel*(F(j) - fmts(j))./fmts(j);
+            T(j)  = (F(j) - fmts(j));
+        else
+            z(j) = 0;
+            T(j) = 0;
+        end;
+        %S(:,j) = log10(S(:,j)+1);
+    end
+    
+        %'sf' is a structure to which variables are assigned for safe
+        %keeping. Here 'S' contains the sensitivity functions.
+        sf(i).S = S;
+        lsd = sqrt(sum(T.^2));
+        lsd_grad(1) = lsd_grad(2);
+        lsd_grad(2) = lsd;
+        %lsd = sqrt(sum(z.^2))
+        
+        %initialization of 'm' which becomes the perturbation function for
+        %altering the area function
+        m = 0*S(:,1);
+        
+        %Generate the perturbation function by scaling the sensitivity
+        %functions with the 'z' coeffs and summing
+        for j=1:length(F)
+            
+            if(F(j) > 0)    
+                m = m + z(j)*S(:,j);
+            else
+                m = m + 0*S(:,j);
+            end;
+            
+        end
+
+     
+        %Assign more info to 'sf'
+        sf(i).m = m;
+        sf(i).z = z;
+        sf(i).lsd = lsd;
+            
+     
+         % Compression to protect against small areas; this is the type given in Story (2006)  
+        %---- Use log areas only when area are less than 1  -- compressor
+        temp = areas(i,:);
+        [r,g]= find(log(temp) < 0);
+
+        a = m' + temp;
+        a(g) = exp(log(m(g)'+1) + log(temp(g)));
+
+        %a(a<minA) = minA;
+        if(min(a) <= minA)
+            break;
+        end
+        areas(i+1,:) = a;
+        areas(i+1,44) 
+        
+        i = i+1;
+        lsd;
+        
+        
+    end;
+    
+    
