@@ -27,7 +27,7 @@ The arguments to the function are:
 - `ρ`: density of air
 """
 function transmission_line_model(
-    a::Vector{Int64}=fill(1,44),
+    a::Vector{Float64}=fill(1.0,44),
     l::Vector{Float64}=fill(.4,44),
     cutoff::Int64=45,
     max_f::Int64=5000,
@@ -126,6 +126,6 @@ function transmission_line_model(
 
     # println("Calculations complete")
 
-    return h, z, Zrad
+    return f, h, z, Zrad
 
 end
