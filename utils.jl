@@ -29,7 +29,7 @@ The arguments to the function are:
 function transmission_line_model(
     a::Vector{Float64}=fill(1.0,44),
     l::Vector{Float64}=fill(.4,44),
-    cutoff::Int64=45,
+    cutoff::Int64=length(a)+1,
     max_f::Int64=5000,
     r::Int64=408,
     fw::Int64=15,
@@ -128,4 +128,77 @@ function transmission_line_model(
 
     return f, h, z, Zrad
 
+end
+
+# TODO properly document this function
+struct tl_vocal_tract
+    a::Vector{Float64}
+    l::Float64
+    v::String
+end
+
+# TODO properly document this function
+function make_parabola(x_points, y_points)
+    # make parabola
+    A = [x_points[1]^2 x_points[1] 1; x_points[2]^2 x_points[2] 1; x_points[3]^2 x_points[3] 1] 
+    y = [y_points[1]; y_points[2]; y_points[3]]
+    coeffs = A \ y
+    a, b, c = coeffs 
+    parabola(x) = a * x^2 + b * x + c
+
+    # calculate delta f
+    der_1 = (y_points[3] - y_points[1]) / (2*(x_points[2] - x_points[1]))
+    der_2 = (y_points[3] - (2*y_points[2]) + y_points[1]) / ((x_points[2] - x_points[1])^2)
+    delta = -der_1 / der_2
+
+    return parabola, delta
+end
+
+# TODO properly document this function
+function hanning(size)
+    # where size refers to the window length
+    return 0.5 * (1 .- cos.(2π * (0:size-1) ./ (size-1)))
+end
+
+# TODO properly document this function
+function find_peaks(; x, y, interpolation::Bool=false, amp_min=-30)
+    peak_indices = []
+    peaks = []
+    current_peak = 0
+    wait = false
+    global_amp_max = maximum(y)
+    for i in [2:1:length(x)-1;]
+        prev_i = i-1
+        prev = y[prev_i]
+        cur = y[i]
+        next_i = i+1
+        next = y[next_i]
+        if (cur == current_peak || (cur - global_amp_max) < amp_min)
+            wait = true
+        else
+            wait = false
+        end
+        prev_i -= 1
+        while (cur == prev && prev_i > 0)
+            prev = y[prev_i]
+            prev_i -= 1
+        end
+        next_i += 1
+        while (cur == next && next_i <= length(x))
+            next = y[next_i]
+            next_i += 1
+        end
+        if (cur > prev && cur > next && wait == false)
+            # println("Frequency: $(x[i]) Prev: $(prev), Cur: $(cur), Next: $(next))")
+            current_peak = cur
+            peak = x[i]
+            push!(peak_indices, i)
+            if (interpolation==true)
+                parabola, delta = make_parabola([x[prev_i], x[i], x[next_i]], [prev, cur, next])
+                peak = x[i]+delta
+            end
+            push!(peaks, peak)
+        end
+    end
+return peaks, peak_indices
 end
