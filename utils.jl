@@ -167,7 +167,7 @@ function find_peaks(; x, y, interpolation::Bool=false, amp_min=-30)
     current_peak = 0
     wait = false
     global_amp_max = maximum(y)
-    for i in [2:1:length(x)-1;]
+    for i in [2:1:length(x)-2;]
         prev_i = i-1
         prev = y[prev_i]
         cur = y[i]
