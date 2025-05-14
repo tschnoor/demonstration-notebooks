@@ -1,0 +1,43 @@
+function [h,f,aud,ug,Fs] = VokalTraktM_wSound(ARvect,LTvect,cutoff,maxF);
+
+
+%Generate voice source signal 
+F0 = 150;
+Fs = 44100;
+Fsp = 200;
+dur = 1;
+correxion = 5000/Fs; 
+Ns = round((dur+correxion)*Fsp);
+
+
+%--Make F0 contour ------
+focontour = 0;
+if(focontour == 1)
+    f01 = 1.4*F0; f02 = F0; N = Ns;
+    A = (f01-f02)/2;
+    B = (f01+f02)/2;
+    fo = A*cos(2*pi*[0:N-1]/(2*N)) + B;
+    source_params(:,1) = fo;
+else
+    source_params(:,1) = F0*ones(Ns,1);
+end
+
+source_params(:,2) = 200*ones(Ns,1);
+ug = flowsource(source_params,Fsp,Fs);
+rt = .01;
+ug = fade(ug,rt,Fs);
+
+%Calculate freq response and convert to impulse resp
+
+[h,z,f,D,h_alt,Zrad] = VokalTraktM2048(ARvect,LTvect,cutoff);
+b = xfer_to_impulse(h);
+
+aud = convolve_vox_tract(b,ug);
+
+rms = sqrt(mean(aud.^2));
+aud = .8*aud/max(abs(aud));
+rt = .01;
+aud = fade(aud,rt,44100);
+
+
+[h,z,f,D,h_alt,Zrad] = VokalTraktM(ARvect,LTvect,cutoff,maxF);
